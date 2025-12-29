@@ -56,39 +56,17 @@ use App\Http\Controllers\Admin\CategoryAdminController;
 use App\Http\Controllers\Admin\ServiceAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
 
-Route::middleware(['auth']) // add 'role:super-admin|admin' after publishing Spatie migrations
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('/users', UserAdminController::class)->middleware('can:manage users');
+    Route::resource('/products', ProductAdminController::class)->middleware('can:manage products');
+    Route::resource('/categories', CategoryAdminController::class)->middleware('can:manage categories');
+    Route::resource('/services', ServiceAdminController::class)->middleware('can:manage services');
 
-        // Users
-        Route::get('/users', [UserAdminController::class, 'index'])->name('users.index');
-        Route::get('/users/{user}', [UserAdminController::class, 'show'])->name('users.show');
-        Route::put('/users/{user}', [UserAdminController::class, 'update'])->name('users.update');
-        Route::delete('/users/{user}', [UserAdminController::class, 'destroy'])->name('users.destroy');
+    // Bulk delete products
+    Route::delete('/products', [ProductAdminController::class, 'destroyAll'])->name('products.destroyAll');
+});
 
-        // Products
-        Route::get('/products', [ProductAdminController::class, 'index'])->name('products.index');
-        Route::get('/products/create', [ProductAdminController::class, 'create'])->name('products.create');
-        Route::post('/products', [ProductAdminController::class, 'store'])->name('products.store');
-        Route::get('/products/{product}/edit', [ProductAdminController::class, 'edit'])->name('products.edit');
-        Route::put('/products/{product}', [ProductAdminController::class, 'update'])->name('products.update');
-        Route::delete('/products/{product}', [ProductAdminController::class, 'destroy'])->name('products.destroy');
-
-        // Categories
-        Route::get('/categories', [CategoryAdminController::class, 'index'])->name('categories.index');
-        Route::get('/categories/create', [CategoryAdminController::class, 'create'])->name('categories.create');
-        Route::post('/categories', [CategoryAdminController::class, 'store'])->name('categories.store');
-        Route::get('/categories/{category}/edit', [CategoryAdminController::class, 'edit'])->name('categories.edit');
-        Route::put('/categories/{category}', [CategoryAdminController::class, 'update'])->name('categories.update');
-        Route::delete('/categories/{category}', [CategoryAdminController::class, 'destroy'])->name('categories.destroy');
-
-        // Services (source code items)
-        Route::get('/services', [ServiceAdminController::class, 'index'])->name('services.index');
-        Route::get('/services/create', [ServiceAdminController::class, 'create'])->name('services.create');
-        Route::post('/services', [ServiceAdminController::class, 'store'])->name('services.store');
-        Route::get('/services/{service}/edit', [ServiceAdminController::class, 'edit'])->name('services.edit');
-        Route::put('/services/{service}', [ServiceAdminController::class, 'update'])->name('services.update');
-        Route::delete('/services/{service}', [ServiceAdminController::class, 'destroy'])->name('services.destroy');
-    });
+// Socialite: Google OAuth routes
+Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirectToProvider'])->name('auth.provider.redirect');
+Route::get('/auth/{provider}/callback', [AuthController::class, 'handleProviderCallback'])->name('auth.provider.callback');

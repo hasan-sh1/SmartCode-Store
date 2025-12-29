@@ -122,4 +122,24 @@ class ProductAdminController extends Controller
         $product->delete();
         return redirect()->route('admin.products.index')->with('status', 'تم حذف المنتج');
     }
+
+    public function destroyAll(Request $request)
+    {
+        if (method_exists(Auth::user(), 'hasRole') && !Auth::user()->hasRole(['super-admin','admin'])) {
+            abort(403);
+        }
+
+        $request->validate([ 'confirm' => 'required|in:yes' ]);
+
+        Product::query()->chunkById(100, function ($products) {
+            foreach ($products as $product) {
+                if ($product->image_path) {
+                    Storage::disk('public')->delete($product->image_path);
+                }
+                $product->delete();
+            }
+        });
+
+        return redirect()->route('admin.products.index')->with('status', 'تم حذف جميع المنتجات');
+    }
 }

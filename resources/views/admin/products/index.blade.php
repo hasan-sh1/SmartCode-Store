@@ -3,7 +3,15 @@
 @section('content')
 <div class="flex items-center justify-between mb-4">
     <h1 class="text-lg font-semibold">المنتجات</h1>
-    <a href="{{ route('admin.products.create') }}" class="px-4 py-2 bg-indigo-600 text-white rounded">إضافة منتج</a>
+    <div class="flex items-center gap-2">
+        <a href="{{ route('admin.products.create') }}" class="px-4 py-2 bg-indigo-600 text-white rounded">إضافة منتج</a>
+        <form action="{{ route('admin.products.destroyAll') }}" method="POST" onsubmit="return confirm('سيتم حذف كل المنتجات، تأكيد؟')">
+            @csrf
+            @method('DELETE')
+            <input type="hidden" name="confirm" value="yes">
+            <button class="px-4 py-2 bg-rose-600 text-white rounded">حذف كل المنتجات</button>
+        </form>
+    </div>
 </div>
 <div class="bg-white rounded shadow overflow-x-auto">
     <table class="min-w-full text-sm">

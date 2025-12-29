@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -59,5 +60,27 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('landing');
+    }
+
+    public function redirectToProvider(string $provider)
+    {
+        return Socialite::driver($provider)->redirect();
+    }
+
+    public function handleProviderCallback(string $provider)
+    {
+        $socialUser = Socialite::driver($provider)->user();
+
+        $user = User::firstOrCreate(
+            ['email' => $socialUser->getEmail()],
+            [
+                'name' => $socialUser->getName() ?: $socialUser->getNickname() ?: 'مستخدم',
+                'password' => Hash::make(str()->random(16)),
+            ]
+        );
+
+        Auth::login($user, true);
+
+        return redirect()->route('store.index')->with('success', 'تم تسجيل الدخول عبر '.$provider);
     }
 }
